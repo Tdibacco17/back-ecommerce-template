@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Product from "../models/product";
-import { BodyProductSchemaInterface, ProductSchemaInterface } from "../types/productTypes";
+import { ProductSchemaInterface } from "../types/productTypes";
 import { isValidCategorieTitle, isValidCategories } from "../utils/validateFunctions";
 
 export const productCreate = async (req: Request, res: Response) => {
@@ -8,7 +8,7 @@ export const productCreate = async (req: Request, res: Response) => {
         slug, name, categorieTitle, price,
         cloudinaryUrl, isNewIn, details, categories,
         oldPrice, discount
-    } = req.body as BodyProductSchemaInterface;
+    } = req.body as ProductSchemaInterface;
 
     try {
         if (!slug || !name || !categorieTitle || !price || !cloudinaryUrl || !isNewIn || !details || (!categories || categories.length === 0)) {

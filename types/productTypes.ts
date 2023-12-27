@@ -16,10 +16,6 @@ export interface ProductSchemaInterface extends Document {
     categories: CategoriesFilterInterface[]
 }
 
-export interface BodyProductSchemaInterface extends ProductSchemaInterface {
-    token: string
-}
-
 // categorias
 export type CategoriesFilterInterface =
     "all"
