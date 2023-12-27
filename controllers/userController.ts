@@ -13,7 +13,7 @@ export const createUser = async (req: Request, res: Response<ParseResponseInterf
     //     //validar si existe un usario con dicho role
     //     const existingUser = await User.findOne({ username });
     //     if (existingUser) {
-    //         return res.status(400).json({ message: "User exist.", status: 404 });
+    //         return res.status(404).json({ message: "User exist.", status: 404 });
     //     }
     //     //crear usuario
     //     const user: UserSchemaInterface = new User({
@@ -26,7 +26,7 @@ export const createUser = async (req: Request, res: Response<ParseResponseInterf
     // } catch (error) {
     //     return res.status(500).json({ message: `Catch error in createUser: ${error}`, status: 500 });
     // }
-    return res.status(200).json({ message: "Unauthorized", status: 401 });
+    return res.status(401).json({ message: "Unauthorized", status: 401 });
 };
 
 export const loginUser = async (req: Request, res: Response<AuthResponseInterface>) => {
@@ -39,7 +39,7 @@ export const loginUser = async (req: Request, res: Response<AuthResponseInterfac
         //buscar usuario
         const userFound = await User.findOne({ username }).select("+password")
         if (!userFound) {
-            return res.status(400).json({ message: "User not found", status: 404 });
+            return res.status(404).json({ message: "User not found", status: 404 });
         }
         //comparar contraseña
         const passwordMatch = await User.comparePasswords(password, userFound.password);
