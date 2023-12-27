@@ -18,7 +18,7 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
         //validar si existe un producto
         const productFound = await Product.findOne({ slug })
         if (productFound) {
-            return res.status(400).json({ message: "Product exist.", status: 400 });
+            return res.status(400).json({ message: "Product exist.", status: 404 });
         }
         //validar categoria y categoria title
         if (!isValidCategories(categories) || !isValidCategorieTitle(categorieTitle)) {
