@@ -4,7 +4,7 @@ import { Document, Model } from "mongoose";
 export interface UserSchemaInterface extends Document {
     username: string,
     password: string,
-    roll: string
+    role: string
 }
 
 export interface UserModelInterface extends Model<UserSchemaInterface> {

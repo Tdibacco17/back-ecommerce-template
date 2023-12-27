@@ -17,9 +17,9 @@ const userSchema = new Schema<UserSchemaInterface, UserModelInterface>({
         minlength: 6,
         select: false
     },
-    roll: {
+    role: {
         type: String,
-        required: [true, "Roll is required."],
+        required: [true, "Role is required."],
     },
 });
 
