@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "es2016",
+        "module": "commonjs",
+        "outDir": "./build",
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noImplicitReturns": true,
+        "skipLibCheck": true,
+        "baseUrl": "./src",
+        "resolveJsonModule": true
+    },
+    "include": [
+        "**/*.ts",
+        "express.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
