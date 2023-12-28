@@ -51,11 +51,11 @@ const productSchema = new Schema<ProductSchemaInterface>({
                 },
             }
         ],
-        description: [String],
+        description: String//[String],
     },
     categories: {
-        type: [String],
-        enum: ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"],
+        type: String,//[String],
+        // enum: ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"],
         required: [true, "Categories are required."],
     },
 }, {
