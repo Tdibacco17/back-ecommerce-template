@@ -8,4 +8,7 @@ export interface EnviromentInterface {
     MONGO_USERNAME: string | undefined,
     MONGO_PASSWORD: string | undefined,
     MONGO_COLLECTION: string | undefined,
+    CLOUDINARY_CLOUD_NAME: string | undefined,
+    CLOUDINARY_API_KEY: string | undefined,
+    CLOUDINARY_API_SECRET: string | undefined
 }

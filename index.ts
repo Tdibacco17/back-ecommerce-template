@@ -1,10 +1,9 @@
 import express from 'express';
 import cors from "cors";
 import { environment } from "./utils/config"
-import connectDB from './db';
-
+import connectDB from './conn/db';
 import { router as userRoutes } from "./routes/userRoutes";
-import { router as productRoutes} from "./routes/productRoutes";
+import { router as productRoutes } from "./routes/productRoutes";
 
 const server = express();
 

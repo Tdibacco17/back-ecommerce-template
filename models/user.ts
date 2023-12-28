@@ -21,6 +21,8 @@ const userSchema = new Schema<UserSchemaInterface, UserModelInterface>({
         type: String,
         required: [true, "Role is required."],
     },
+}, {
+    timestamps: true
 });
 
 userSchema.statics.comparePasswords = async function (

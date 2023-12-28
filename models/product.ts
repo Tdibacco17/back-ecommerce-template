@@ -1,7 +1,7 @@
 import { ProductSchemaInterface } from "../types/productTypes";
 import { Schema, model } from "mongoose";
 
-const productSchema = new Schema({
+const productSchema = new Schema<ProductSchemaInterface>({
     slug: {
         type: String,
         required: [true, "Slug is required."],
@@ -12,14 +12,13 @@ const productSchema = new Schema({
         required: [true, "Name is required."],
         minlength: 5
     },
-    categorieTitle: {
-        type: String,
-        enum: ["Remera", "Sudadera", "Top", "Ropa deportiva", "Pantalones", "Vestido"],
-        required: [true, "Category title is required."],
-    },
     price: {
         type: Number,
         required: [true, "Price is required."],
+    },
+    stock: {
+        type: Number,
+        required: [true, "Stock is required."],
     },
     oldPrice: {
         type: Number,
@@ -27,26 +26,40 @@ const productSchema = new Schema({
     discount: {
         type: Number,
     },
-    cloudinaryUrl: {
-        type: String,
-        required: [true, "Cloudinary URL is required."],
-    },
-    isNewIn: {
-        type: Boolean,
-        required: [true, "isNewIn flag is required."],
+    imageData: {
+        type: Object,
+        public_id: {
+            type: String,
+            required: [true, "Public_id is required."],
+        },
+        secure_url: {
+            type: String,
+            required: [true, "Secure_url is required."],
+        },
     },
     details: {
-        type: {
-            imagesData: [String],
-            description: [String],
-        },
-        required: [true, "Details are required."],
+        type: Object,
+        imagesData: [
+            {
+                public_id: {
+                    type: String,
+                    required: [true, "Public_id is required."],
+                },
+                secure_url: {
+                    type: String,
+                    required: [true, "Secure_url is required."],
+                },
+            }
+        ],
+        description: [String],
     },
     categories: {
         type: [String],
         enum: ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"],
         required: [true, "Categories are required."],
     },
+}, {
+    timestamps: true
 });
 
 const Product = model<ProductSchemaInterface>("Product", productSchema);

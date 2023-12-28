@@ -1,19 +1,34 @@
 import { Document } from "mongoose";
+export interface CloudinaryImgInterface {
+    public_id: string,
+    secure_url: string
+}
 
 export interface ProductSchemaInterface extends Document {
     slug: string,
     name: string,
-    categorieTitle: CategorieTitle,
     price: number,
+    stock: number,
     oldPrice?: number,
     discount?: number,
-    cloudinaryUrl: string,
-    isNewIn: boolean,
+    imageData: CloudinaryImgInterface,
     details: {
-        imagesData: string[],
+        imagesData: CloudinaryImgInterface[],
         description: string[],
     },
-    categories: CategoriesFilterInterface[]
+    categories: CategoriesFilterInterface[],
+}
+
+export interface BodyProductCreateInterface {
+    slug: string,
+    name: string,
+    price: number,
+    stock: number,
+    oldPrice?: number,
+    discount?: number,
+    description: string,//string[],
+    categories: string //CategoriesFilterInterface[],
+    //image & images viajan en req.files
 }
 
 // categorias
@@ -26,5 +41,3 @@ export type CategoriesFilterInterface =
     | "bottoms"
     | "dresses"
     | "outstanding";
-
-export type CategorieTitle = "Remera" | "Sudadera" | "Top" | "Ropa deportiva" | "Pantalones" | "Vestido"

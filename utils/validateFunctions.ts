@@ -1,12 +1,24 @@
-import { CategorieTitle, CategoriesFilterInterface } from "../types/productTypes"
+import { UploadedFile } from 'express-fileupload';
+import { uploadImage, uploadMultipleImages } from '../conn/cloudinary';
+import { CloudinaryImgInterface } from '../types';
 
-// Funciones de validación
-export const isValidCategorieTitle = (categorieTitle: CategorieTitle): boolean => {
-    const allowedCategorieTitles = ["Remera", "Sudadera", "Top", "Ropa deportiva", "Pantalones", "Vestido"];
-    return allowedCategorieTitles.includes(categorieTitle);
-}
-
-export const isValidCategories = (categories: CategoriesFilterInterface[]): boolean => {
+export const isValidCategories = (categories: string[]/* CategoriesFilterInterface[] */): boolean => {
     const allowedCategories = ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"];
     return categories.every(category => allowedCategories.includes(category));
+}
+
+export async function handleImageUpload(image: UploadedFile | undefined, images: UploadedFile | UploadedFile[] | undefined) {
+    const cloudImageData = image ? await uploadImage(image.tempFilePath) : undefined;
+
+    let cloudImagesData: CloudinaryImgInterface[] = images
+        ? Array.isArray(images) ?
+            await uploadMultipleImages(images.map((img) => img.tempFilePath))
+            : [await uploadImage((images as UploadedFile)?.tempFilePath)]
+        : [];
+
+    if (cloudImageData) {
+        cloudImagesData = [cloudImageData, ...cloudImagesData];
+    }
+
+    return { cloudImageData, cloudImagesData };
 }

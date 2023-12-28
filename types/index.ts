@@ -10,6 +10,11 @@ export interface AuthResponseInterface extends ParseResponseInterface {
     token?: string
 }
 //respuesta mp api
-export interface MercadoPagoResponseInterface extends ParseResponseInterface {
-    url: string,
+// export interface MercadoPagoResponseInterface extends ParseResponseInterface {
+//     url: string,
+// }
+
+export interface CloudinaryImgInterface {
+    public_id: string;
+    secure_url: string;
 }

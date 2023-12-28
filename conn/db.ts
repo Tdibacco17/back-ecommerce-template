@@ -1,5 +1,5 @@
 import { connect, connection } from "mongoose";
-import { environment } from "./utils/config"
+import { environment } from "../utils/config"
 
 async function connectDB() {
     try {
