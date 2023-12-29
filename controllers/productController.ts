@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Product from "../models/product";
 import { BodyProductCreateInterface, ProductSchemaInterface } from "../types/productTypes";
-import { handleImageUpload, isValidCategories } from "../utils/validateFunctions";
+import { handleImageUpload /*, isValidCategories*/ } from "../utils/validateFunctions";
 import { ParseResponseInterface } from "../types";
 import { UploadedFile } from "express-fileupload";
 import { deleteImage, uploadImage, uploadMultipleImages } from "../conn/cloudinary";
@@ -11,7 +11,7 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
     const { slug, name, price, oldPrice, discount, stock, categories, description } = req.body as BodyProductCreateInterface;
 
     try {
-        if (!slug || !name || !price || !stock || !req.files || !categories || categories.length === 0) {
+        if (!slug || !name || !price || !stock || !req.files /*|| !categories || categories.length === 0*/) {
             return res.status(400).json({ message: "Missing data required.", status: 400 });
         }
         //agarro las imagenes
@@ -26,10 +26,12 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
             await fs.emptyDir('./uploads');
             return res.status(404).json({ message: "Product exist.", status: 404 });
         }
-        //validar categoria y categoria title
-        if (!isValidCategories([categories])) {
-            return res.status(400).json({ message: "Invalid categories or categorieTitle", status: 400 });
-        }
+        //validar categoria y categoria title 
+        // => llamar a todas las categorias y recorer para ver si exista la q le pasamos
+        // y luego concatenarla a ["all"]
+        // if (!isValidCategories([categories])) {
+        //     return res.status(400).json({ message: "Invalid categories or categorieTitle", status: 400 });
+        // }
 
         //subir imagen a cloudinary
         const { cloudImageData, cloudImagesData } = await handleImageUpload((imageData as UploadedFile | undefined), (imagesData as UploadedFile[] | UploadedFile | undefined));
@@ -45,7 +47,7 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
                 imagesData: cloudImagesData,
                 description: description
             },
-            categories,
+            categories: categories ? ["all", categories] : ["all"],
             oldPrice,
             discount
         });
@@ -54,7 +56,7 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
         await fs.emptyDir('./uploads');
 
         return res.status(200).json({
-            message: "Successfully registered user",
+            message: "Product registered successfully",
             data: savedProduct,
             status: 200
         });

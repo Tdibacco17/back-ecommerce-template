@@ -8,7 +8,6 @@ const userSchema = new Schema<UserSchemaInterface, UserModelInterface>({
     username: {
         type: String,
         required: [true, "Username is required."],
-        minlength: 4
     },
     password: {
         type: String,

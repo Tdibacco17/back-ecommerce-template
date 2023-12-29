@@ -4,6 +4,7 @@ import { environment } from "./utils/config"
 import connectDB from './conn/db';
 import { router as userRoutes } from "./routes/userRoutes";
 import { router as productRoutes } from "./routes/productRoutes";
+import { router as categoryRoutes } from "./routes/categoryRoutes";
 
 const server = express();
 
@@ -15,6 +16,7 @@ server.use(cors());
 //acceso a rutas
 server.use("/", userRoutes);
 server.use("/", productRoutes);
+server.use("/", categoryRoutes);
 
 //conexiones
 let PORT = 3001;

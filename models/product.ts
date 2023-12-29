@@ -10,6 +10,7 @@ const productSchema = new Schema<ProductSchemaInterface>({
     name: {
         type: String,
         required: [true, "Name is required."],
+        trim: true,
     },
     price: {
         type: Number,
@@ -53,7 +54,7 @@ const productSchema = new Schema<ProductSchemaInterface>({
         description: String//[String],
     },
     categories: {
-        type: String,//[String],
+        type: [String],
         // enum: ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"],
         required: [true, "Categories are required."],
     },

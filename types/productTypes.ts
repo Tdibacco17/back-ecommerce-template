@@ -16,7 +16,7 @@ export interface ProductSchemaInterface extends Document {
         imagesData: CloudinaryImgInterface[],
         description: string,// string[],
     },
-    categories: string//CategoriesFilterInterface[],
+    categories: string[]//CategoriesFilterInterface[],
 }
 
 export interface BodyProductCreateInterface {
