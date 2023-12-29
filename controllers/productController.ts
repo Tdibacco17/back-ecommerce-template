@@ -4,7 +4,7 @@ import { BodyProductCreateInterface, ProductSchemaInterface } from "../types/pro
 import { handleImageUpload, isValidCategories } from "../utils/validateFunctions";
 import { ParseResponseInterface } from "../types";
 import { UploadedFile } from "express-fileupload";
-import { deleteImage, uploadImage } from "../conn/cloudinary";
+import { deleteImage, uploadImage, uploadMultipleImages } from "../conn/cloudinary";
 import fs from 'fs-extra';
 
 export const productCreate = async (req: Request, res: Response<ParseResponseInterface>) => {
@@ -172,6 +172,121 @@ export const updateProductImageData = async (req: Request, res: Response<ParseRe
         });
     } catch (error) {
         return res.status(500).json({ message: `Catch error in updateProductFirstImg: ${error}`, status: 500 });
+    }
+}
+
+export const addImgToImagesData = async (req: Request, res: Response<ParseResponseInterface>) => {
+    const { slug } = req.params
+
+    try {
+        //si no viene slug corto
+        if (!slug) {
+            return res.status(400).json({ message: "Slug required.", status: 400 });
+        }
+        //si no viene slug un archivo corto
+        if (!req.files) {
+            return res.status(400).json({ message: "File required.", status: 400 });
+        }
+        const { imagesData } = req.files
+        //si no viene imagen corto
+        if (!imagesData) {
+            return res.status(400).json({ message: "imagesData required.", status: 400 });
+        }
+        const productFound = await Product.findOne({ slug });
+        //si no existe el producto corto
+        if (!productFound) {
+            await fs.emptyDir('./uploads');
+            return res.status(404).json({ message: "Product does not exist.", status: 404 });
+        }
+
+        let cloudImageData;
+        //verifico si viene mas de una
+        if (Array.isArray(imagesData)) {
+            cloudImageData = await uploadMultipleImages(imagesData.map((img) => img.tempFilePath));
+        } else {
+            cloudImageData = await uploadImage((imagesData as UploadedFile).tempFilePath);
+        }
+
+        // Actualizar el producto en la base de datos
+        const productFoundAndUpdate = await Product.findOneAndUpdate(
+            { slug },
+            {
+                $addToSet: {
+                    'details.imagesData': Array.isArray(imagesData)
+                        ? { $each: cloudImageData }
+                        : cloudImageData,
+                },
+            },
+            { new: true }
+        );
+
+        await fs.emptyDir('./uploads');
+        if (!productFoundAndUpdate) {
+            await fs.emptyDir('./uploads');
+            return res.status(404).json({ message: "Update error.", status: 404 });
+        }
+        return res.status(200).json({
+            data: productFoundAndUpdate,
+            message: "Products found satisfactorily",
+            status: 200
+        });
+    } catch (error) {
+        return res.status(500).json({ message: `Catch error in addImgToImagesData: ${error}`, status: 500 });
+    }
+}
+
+export const removeImgsFromImagesData = async (req: Request, res: Response<ParseResponseInterface>) => {
+    const { slug } = req.params
+
+    try {
+        if (!slug) {
+            return res.status(400).json({ message: "Slug required.", status: 400 });
+        }
+        const productFound = await Product.findOne({ slug })
+
+        if (!productFound) {
+            return res.status(404).json({
+                message: "Product does not exists.",
+                status: 404
+            });
+        }
+
+        // Verificar si hay más de una imagen en el arreglo
+        if (productFound.details.imagesData.length > 1) {
+            // Obtener todas las imágenes después de la primera
+            const imagesToRemove = productFound.details.imagesData.slice(1);
+            // Eliminar cada imagen de Cloudinary
+            for (const image of imagesToRemove) {
+                if (image.public_id) {
+                    await deleteImage(image.public_id);
+                }
+            }
+            // Mantener solo la primera imagen en el arreglo
+            const updatedImagesData = [productFound.details.imagesData[0]];
+            // Actualizar el producto en la base de datos usando findOneAndUpdate
+            const productFoundAndUpdate = await Product.findOneAndUpdate(
+                { slug },
+                {
+                    $set: {
+                        'details.imagesData': updatedImagesData,
+                    },
+                },
+                { new: true }
+            );
+            return res.status(200).json({
+                message: "ImagesData successfully removed.",
+                data: productFoundAndUpdate,
+                status: 200,
+            });
+        } else {
+            return res.status(200).json({
+                message: "No images to remove.",
+                data: productFound,
+                status: 200,
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: `Catch error in deleteImgsFromImagesData: ${error}`, status: 500 });
     }
 }
 
