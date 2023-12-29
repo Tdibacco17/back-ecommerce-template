@@ -4,7 +4,7 @@ import { BodyProductCreateInterface, ProductSchemaInterface } from "../types/pro
 import { handleImageUpload, isValidCategories } from "../utils/validateFunctions";
 import { ParseResponseInterface } from "../types";
 import { UploadedFile } from "express-fileupload";
-import { deleteImage } from "../conn/cloudinary";
+import { deleteImage, uploadImage } from "../conn/cloudinary";
 import fs from 'fs-extra';
 
 export const productCreate = async (req: Request, res: Response<ParseResponseInterface>) => {
@@ -15,9 +15,9 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
             return res.status(400).json({ message: "Missing data required.", status: 400 });
         }
         //agarro las imagenes
-        const { image, images } = req.files
-        if (!image) {
-            return res.status(400).json({ message: "Image data required.", status: 400 });
+        const { imageData, imagesData } = req.files
+        if (!imageData) {
+            return res.status(400).json({ message: "ImageData required.", status: 400 });
         }
         //validar si existe un producto
         const productFound = await Product.findOne({ slug })
@@ -32,7 +32,7 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
         }
 
         //subir imagen a cloudinary
-        const { cloudImageData, cloudImagesData } = await handleImageUpload((image as UploadedFile | undefined), (images as UploadedFile[] | UploadedFile | undefined));
+        const { cloudImageData, cloudImagesData } = await handleImageUpload((imageData as UploadedFile | undefined), (imagesData as UploadedFile[] | UploadedFile | undefined));
 
         //crear producto
         const newProduct: ProductSchemaInterface = await Product.create({
@@ -106,8 +106,9 @@ export const updateProductInfo = async (req: Request, res: Response<ParseRespons
         }
         //terminar de crear bien el arreglo
         if (description && description.length > 0) {
-            updateFields["details.description"] = description; 
+            updateFields["details.description"] = description;
         }
+
         const productFound = await Product.findOneAndUpdate({ slug }, updateFields, { new: true });
         if (!productFound) {
             return res.status(404).json({ message: "Product does not exist.", status: 404 });
@@ -118,7 +119,59 @@ export const updateProductInfo = async (req: Request, res: Response<ParseRespons
             status: 200
         });
     } catch (error) {
-        return res.status(500).json({ message: `Catch error in updateProduct: ${error}`, status: 500 });
+        return res.status(500).json({ message: `Catch error in updateProductInfo: ${error}`, status: 500 });
+    }
+}
+
+export const updateProductImageData = async (req: Request, res: Response<ParseResponseInterface>) => {
+    const { slug } = req.params
+
+    try {
+        //si no viene slug corto
+        if (!slug) {
+            return res.status(400).json({ message: "Slug required.", status: 400 });
+        }
+        //si no viene slug un archivo corto
+        if (!req.files) {
+            return res.status(400).json({ message: "File required.", status: 400 });
+        }
+        const { imageData } = req.files
+        //si no viene imagen corto
+        if (!imageData) {
+            return res.status(400).json({ message: "ImageData required.", status: 400 });
+        }
+        const productFound = await Product.findOne({ slug });
+        //si no existe el producto corto
+        if (!productFound) {
+            await fs.emptyDir('./uploads');
+            return res.status(404).json({ message: "Product does not exist.", status: 404 });
+        }
+        //elimino primer imagen
+        await deleteImage(productFound.imageData.public_id);
+        //creo nueva imagen y la subo a cloud
+        const cloudImageData = await uploadImage((imageData as UploadedFile).tempFilePath);
+        //piso el valor de la imagen del producto con la nueva
+        productFound.imageData = cloudImageData;
+        //arreglo de imagenes en details.imagesData del producto
+        const imagesDataArray = productFound.details.imagesData;
+        //elimino la primera imagen del arreglo
+        imagesDataArray.shift()
+        // Agregar la nueva imagen al principio del arreglo
+        imagesDataArray.unshift({
+            public_id: cloudImageData.public_id,
+            secure_url: cloudImageData.secure_url,
+        });
+        //guardo
+        await productFound.save();
+        //borro archivos generados en /uploads
+        await fs.emptyDir('./uploads');
+        return res.status(200).json({
+            message: "First Image update successfully.",
+            data: productFound,
+            status: 200
+        });
+    } catch (error) {
+        return res.status(500).json({ message: `Catch error in updateProductFirstImg: ${error}`, status: 500 });
     }
 }
 
@@ -128,7 +181,6 @@ export const deleteProduct = async (req: Request, res: Response<ParseResponseInt
         if (!slug) {
             return res.status(400).json({ message: "Slug required.", status: 400 });
         }
-
         const productFound = await Product.findOneAndDelete({ slug })
 
         if (!productFound) {

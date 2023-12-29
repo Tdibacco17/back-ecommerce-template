@@ -10,7 +10,6 @@ const productSchema = new Schema<ProductSchemaInterface>({
     name: {
         type: String,
         required: [true, "Name is required."],
-        minlength: 5
     },
     price: {
         type: Number,
