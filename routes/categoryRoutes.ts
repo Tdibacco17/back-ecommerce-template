@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { authMiddleware } from "../middlewares/authMiddleware";
-import { createCategory, getCategories } from "../controllers/categoryController";
+import { createCategory, deleteCategory, getCategories } from "../controllers/categoryController";
 
 export const router = Router();
-
+//crear categoria
 router.post("/category", authMiddleware, createCategory);
-router.get("/categories", authMiddleware, getCategories);
+//traer todas las categorias
+router.get("/categories", getCategories);
+//eliminar una categoria
+router.delete("/category", authMiddleware, deleteCategory);

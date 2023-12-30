@@ -1,17 +1,17 @@
 import { Request, Response } from "express";
 import Product from "../models/product";
 import { BodyProductCreateInterface, ProductSchemaInterface } from "../types/productTypes";
-import { handleImageUpload /*, isValidCategories*/ } from "../utils/validateFunctions";
+import { handleImageUpload } from "../utils/validateFunctions";
 import { ParseResponseInterface } from "../types";
 import { UploadedFile } from "express-fileupload";
 import { deleteImage, uploadImage, uploadMultipleImages } from "../conn/cloudinary";
 import fs from 'fs-extra';
 
 export const productCreate = async (req: Request, res: Response<ParseResponseInterface>) => {
-    const { slug, name, price, oldPrice, discount, stock, categories, description } = req.body as BodyProductCreateInterface;
+    const { slug, name, price, oldPrice, discount, stock, description } = req.body as BodyProductCreateInterface;
 
     try {
-        if (!slug || !name || !price || !stock || !req.files /*|| !categories || categories.length === 0*/) {
+        if (!slug || !name || !price || !stock || !req.files) {
             return res.status(400).json({ message: "Missing data required.", status: 400 });
         }
         //agarro las imagenes
@@ -26,12 +26,6 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
             await fs.emptyDir('./uploads');
             return res.status(404).json({ message: "Product exist.", status: 404 });
         }
-        //validar categoria y categoria title 
-        // => llamar a todas las categorias y recorer para ver si exista la q le pasamos
-        // y luego concatenarla a ["all"]
-        // if (!isValidCategories([categories])) {
-        //     return res.status(400).json({ message: "Invalid categories or categorieTitle", status: 400 });
-        // }
 
         //subir imagen a cloudinary
         const { cloudImageData, cloudImagesData } = await handleImageUpload((imageData as UploadedFile | undefined), (imagesData as UploadedFile[] | UploadedFile | undefined));
@@ -45,9 +39,8 @@ export const productCreate = async (req: Request, res: Response<ParseResponseInt
             imageData: cloudImageData,
             details: {
                 imagesData: cloudImagesData,
-                description: description
+                description
             },
-            categories: categories ? ["all", categories] : ["all"],
             oldPrice,
             discount
         });
@@ -81,11 +74,17 @@ export const getProducts = async (req: Request, res: Response<ParseResponseInter
 
 export const updateProductInfo = async (req: Request, res: Response<ParseResponseInterface>) => {
     const { slug } = req.params
-    const { name, price, oldPrice, discount, stock, categories, description } = req.body as BodyProductCreateInterface;
+    const { name, price, oldPrice, discount, stock, description, category } = req.body as BodyProductCreateInterface;
     try {
         if (!slug) {
             return res.status(400).json({ message: "Slug required.", status: 400 });
         }
+        const productFound = await Product.findOne({ slug });
+
+        if (!productFound) {
+            return res.status(404).json({ message: "Product does not exist.", status: 404 });
+        }
+
         const updateFields: any = {};
         if (name && name.length > 0) {
             updateFields["name"] = name
@@ -102,22 +101,22 @@ export const updateProductInfo = async (req: Request, res: Response<ParseRespons
         if (stock && stock >= 0) {
             updateFields["stock"] = stock
         }
-        //terminar de crear bien el arreglo
-        if (categories && categories.length > 0) {
-            updateFields["categories"] = categories
+        if (category && category.length > 0) {
+            const uniqueCategories = [...new Set([...productFound.categories, ...category])];
+            updateFields["categories"] = uniqueCategories;
         }
         //terminar de crear bien el arreglo
         if (description && description.length > 0) {
             updateFields["details.description"] = description;
         }
 
-        const productFound = await Product.findOneAndUpdate({ slug }, updateFields, { new: true });
-        if (!productFound) {
+        const productFoundAndUpdate = await Product.findOneAndUpdate({ slug }, updateFields, { new: true });
+        if (!productFoundAndUpdate) {
             return res.status(404).json({ message: "Product does not exist.", status: 404 });
         }
         return res.status(200).json({
             message: "Product successfully removed.",
-            data: productFound,
+            data: productFoundAndUpdate,
             status: 200
         });
     } catch (error) {
@@ -323,3 +322,38 @@ export const deleteProduct = async (req: Request, res: Response<ParseResponseInt
         return res.status(500).json({ message: `Catch error in deleteProduct: ${error}`, status: 500 });
     }
 }
+
+export const removeCategoryFromProduct = async (req: Request, res: Response<ParseResponseInterface>) => {
+    const { slug } = req.params;
+    const { category } = req.body;
+
+    try {
+        if (!slug || !category) {
+            return res.status(400).json({ message: "Slug and category are required.", status: 400 });
+        }
+
+        const productFound = await Product.findOne({ slug });
+
+        if (!productFound) {
+            return res.status(404).json({ message: "Product does not exist.", status: 404 });
+        }
+
+        // Filtrar el arreglo de categorías para eliminar la categoría específica
+        const updatedCategories = productFound.categories.filter((cat: string) => cat !== category);
+
+        // Actualizar el producto con las categorías actualizadas
+        const updatedProduct = await Product.findOneAndUpdate(
+            { slug },
+            { categories: updatedCategories },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            message: `Category '${category}' removed from product successfully.`,
+            data: updatedProduct,
+            status: 200
+        });
+    } catch (error) {
+        return res.status(500).json({ message: `Catch error in removeCategoryFromProduct: ${error}`, status: 500 });
+    }
+};

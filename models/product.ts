@@ -51,11 +51,19 @@ const productSchema = new Schema<ProductSchemaInterface>({
                 },
             }
         ],
-        description: String//[String],
+        description: {
+            type: String
+            // type: [String],
+            // default: [
+            //     "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+            //     "Sed ut turpis vel mauris malesuada efficitur. Fusce tincidunt risus vel elit tempor, nec vestibulum tortor fringilla.",
+            //     "Quisque vehicula, felis in condimentum sodales, justo lectus consectetur libero, id interdum quam justo id ipsum. Nulla facilisi."   
+            // ]
+        }
     },
     categories: {
         type: [String],
-        // enum: ["all", "tshirt", "sweatshirts", "top", "sportswear", "bottoms", "dresses", "outstanding"],
+        default: ["all"],
         required: [true, "Categories are required."],
     },
 }, {

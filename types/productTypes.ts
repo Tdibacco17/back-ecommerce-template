@@ -27,17 +27,7 @@ export interface BodyProductCreateInterface {
     oldPrice?: number,
     discount?: number,
     description: string,//string[],
-    categories: string //CategoriesFilterInterface[],
+    category: string[]
+    //categoria autoasignable
     //image & images viajan en req.files
 }
-
-// categorias
-export type CategoriesFilterInterface =
-    "all"
-    | "tshirt"
-    | "sweatshirts"
-    | "top"
-    | "sportswear"
-    | "bottoms"
-    | "dresses"
-    | "outstanding";
